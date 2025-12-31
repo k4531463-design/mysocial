@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>My Social App</title>
+
+<style>
+body{margin:0;font-family:Arial;background:#fafafa}
+.app{max-width:420px;margin:auto;background:#fff;min-height:100vh;padding-bottom:60px}
+
+/* HEADER */
+header{display:flex;justify-content:space-between;align-items:center;
+padding:10px;border-bottom:1px solid #ddd}
+header b{font-size:20px}
+
+/* STORIES */
+.stories{display:flex;overflow-x:auto;padding:10px;border-bottom:1px solid #ddd}
+.story{text-align:center;margin-right:12px;font-size:11px}
+.story img{width:60px;height:60px;border-radius:50%;
+border:2px solid #ff0050;object-fit:cover}
+
+/* POST */
+.post{border-bottom:1px solid #ddd}
+.post-header{display:flex;align-items:center;padding:10px}
+.post-header img{width:32px;height:32px;border-radius:50%;margin-right:8px}
+.post img,.post video{width:100%}
+.title{padding:6px;font-weight:bold}
+.actions{padding:6px;font-size:22px}
+.count{font-size:12px;padding:0 6px}
+
+/* NAV */
+nav{position:fixed;bottom:0;width:100%;max-width:420px;
+background:#fff;border-top:1px solid #ddd;
+display:flex;justify-content:space-around;padding:10px}
+nav span{font-size:22px;cursor:pointer}
+
+/* PAGES */
+.page{display:none}
+.page.active{display:block}
+
+/* PROFILE */
+.profile{text-align:center;padding:15px}
+.profile img{width:90px;height:90px;border-radius:50%;object-fit:cover}
+.stats{display:flex;justify-content:space-around;margin:10px 0}
+.btn{padding:8px 12px;border:none;background:#0095f6;color:#fff;border-radius:5px}
+
+/* POPUP */
+.popup{position:fixed;inset:0;background:rgba(0,0,0,.6);
+display:none;align-items:center;justify-content:center;z-index:999}
+.popup div{background:#fff;padding:15px;width:90%;max-width:300px;border-radius:10px}
+.popup input,.popup textarea{width:100%;padding:6px;margin-bottom:8px}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<header>
+  <b>MySocial</b>
+  <span>❤️ 💬</span>
+</header>
+
+<!-- HOME -->
+<div id="home" class="page active">
+
+<div class="stories" id="storyList">
+  <div class="story">
+    <img src="https://i.pravatar.cc/100?u=me" onclick="addStory()">
+    <div>Your Story</div>
+  </div>
+</div>
+
+<div id="feed"></div>
+</div>
+
+<!-- PROFILE -->
+<div id="profile" class="page">
+  <div class="profile">
+    <img id="profilePic" src="https://i.pravatar.cc/150?u=me" onclick="changeProfilePhoto()">
+    <h3 id="profileName">you ✔️</h3>
+    <p id="profileBio">My bio here</p>
+
+    <div class="stats">
+      <div><b id="postCount">0</b><br>Posts</div>
+      <div><b>120</b><br>Followers</div>
+      <div><b>80</b><br>Following</div>
+    </div>
+
+    <button class="btn" onclick="openEdit()">Edit Profile</button>
+  </div>
+</div>
+
+</div>
+
+<!-- NAV -->
+<nav>
+  <span onclick="show('home')">🏠</span>
+  <span onclick="addPost()">➕</span>
+  <span onclick="addReel()">🎬</span>
+  <span onclick="show('profile')">👤</span>
+</nav>
+
+<!-- EDIT PROFILE -->
+<div class="popup" id="editBox">
+  <div>
+    <h3>Edit Profile</h3>
+    <input id="editName" placeholder="Username">
+    <textarea id="editBio" placeholder="Bio"></textarea>
+    <button class="btn" onclick="saveProfile()">Save</button>
+    <button class="btn" style="background:#aaa" onclick="closeEdit()">Cancel</button>
+  </div>
+</div>
+
+<script>
+const feed=document.getElementById("feed");
+const storyList=document.getElementById("storyList");
+let posts=0;
+
+/* PAGE SWITCH */
+function show(id){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+
+/* STORY UPLOAD – FIXED */
+function addStory(){
+  let i=document.createElement("input");
+  i.type="file";
+  i.accept="image/*,video/*";
+  i.onchange=()=>{
+    let file=i.files[0];
+    let url=URL.createObjectURL(file);
+    let div=document.createElement("div");
+    div.className="story";
+    div.innerHTML=`<img src="${url}"><div>You</div>`;
+    storyList.appendChild(div);
+  };
+  i.click();
+}
+
+/* POST UPLOAD */
+function addPost(){upload("image/*","photo")}
+function addReel(){upload("video/*","video")}
+
+function upload(type,kind){
+  let i=document.createElement("input");
+  i.type="file"; i.accept=type;
+  i.onchange=()=>{
+    let title=prompt("Enter title")||"";
+    if(kind==="photo"){
+      let r=new FileReader();
+      r.onload=e=>createPost(kind,e.target.result,title);
+      r.readAsDataURL(i.files[0]);
+    }else{
+      createPost(kind,URL.createObjectURL(i.files[0]),title);
+    }
+  };
+  i.click();
+}
+
+function createPost(type,src,title){
+  posts++;
+  document.getElementById("postCount").innerText=posts;
+  let p=document.createElement("div");
+  p.className="post";
+  p.innerHTML=`
+    <div class="post-header">
+      <img src="${profilePic.src}">
+      <b>${profileName.innerText}</b>
+    </div>
+    ${type==="photo"
+      ? `<img src="${src}">`
+      : `<video src="${src}" controls></video>`}
+    <div class="title">${title}</div>
+    <div class="actions">
+      <span onclick="this.textContent=this.textContent==='🤍'?'❤️':'🤍'">🤍</span>
+      🔗
+    </div>
+    <div class="count">0 likes · 0 shares</div>`;
+  feed.prepend(p);
+}
+
+/* PROFILE EDIT – FIXED */
+function openEdit(){
+  editName.value=profileName.innerText.replace(" ✔️","");
+  editBio.value=profileBio.innerText;
+  editBox.style.display="flex";
+}
+function closeEdit(){editBox.style.display="none"}
+function saveProfile(){
+  profileName.innerText=editName.value+" ✔️";
+  profileBio.innerText=editBio.value;
+  closeEdit();
+}
+
+/* PROFILE PHOTO */
+function changeProfilePhoto(){
+  let i=document.createElement("input");
+  i.type="file"; i.accept="image/*";
+  i.onchange=()=>{
+    let r=new FileReader();
+    r.onload=e=>profilePic.src=e.target.result;
+    r.readAsDataURL(i.files[0]);
+  };
+  i.click();
+}
+</script>
+
+</body>
+</html>
